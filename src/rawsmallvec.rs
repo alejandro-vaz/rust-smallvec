@@ -23,7 +23,7 @@ use {
 /// with respect to `T`, and since the heap pointer is never null.
 #[repr(C)]
 pub union RawSmallVec<T, const N: usize> {
-    pub inline: ManuallyDrop<MaybeUninit<[T; N]>>,
+    pub inline: ManuallyDrop<[MaybeUninit<T>; N]>,
     pub heap: (NonNull<T>, usize)
 }
 
@@ -40,11 +40,11 @@ impl<T, const N: usize> RawSmallVec<T, N> {
 
     #[inline]
     pub const fn new() -> Self {
-        Self::new_inline(MaybeUninit::uninit())
+        Self::new_inline([const {MaybeUninit::uninit()}; N])
     }
 
     #[inline]
-    pub const fn new_inline(inline: MaybeUninit<[T; N]>) -> Self {
+    pub const fn new_inline(inline: [MaybeUninit<T>; N]) -> Self {
         Self {
             inline: ManuallyDrop::new(inline)
         }

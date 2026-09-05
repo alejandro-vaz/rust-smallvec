@@ -713,7 +713,7 @@ impl<T, const N: usize> SmallVec<T, N> {
         // Although we create a new buffer, since S and N are known at compile
         // time, even with `-C opt-level=1`, it gets optimized as best
         // as it could be. (Checked with <godbolt.org>)
-        let mut buf: MaybeUninit<[T; N]> = MaybeUninit::uninit();
+        let mut buf: [MaybeUninit<T>; N] = [const {MaybeUninit::uninit()}; N];
 
         // SAFETY: buf and elements do not overlap, are aligned and have space
         // for at least S elements since S <= N.
@@ -739,7 +739,7 @@ impl<T, const N: usize> SmallVec<T, N> {
         // SAFETY: all the members in 0..len are initialized
         let mut vec = Self {
             len: TaggedLen::new(len, false),
-            raw: RawSmallVec::new_inline(MaybeUninit::new(buf)),
+            raw: RawSmallVec::new_inline(buf.map(MaybeUninit::new)),
             _marker: PhantomData
         };
         // Deallocate the remaining elements so no memory is leaked.
@@ -782,7 +782,7 @@ impl<T, const N: usize> SmallVec<T, N> {
     ///
     /// `len <= N`, and all the elements in `buf[..len]` must be initialized
     #[inline]
-    pub const unsafe fn from_buf_and_len_unchecked(buf: MaybeUninit<[T; N]>, len: usize) -> Self {
+    pub const unsafe fn from_buf_and_len_unchecked(buf: [MaybeUninit<T>; N], len: usize) -> Self {
         debug_assert!(len <= N);
         Self {
             len: TaggedLen::new(len, false),
@@ -1284,7 +1284,7 @@ impl<T, const N: usize> SmallVec<T, N> {
             // SAFETY: on_heap is true, so we're on the heap
             unsafe {
                 let (ptr, capacity) = self.raw.heap;
-                self.raw = RawSmallVec::new_inline(MaybeUninit::uninit());
+                self.raw = RawSmallVec::new_inline([const {MaybeUninit::uninit()}; N]);
                 copy_nonoverlapping(ptr.as_ptr(), self.raw.as_mut_ptr_inline(), len);
                 self.set_inline();
                 alloc::alloc::dealloc(
@@ -1314,7 +1314,7 @@ impl<T, const N: usize> SmallVec<T, N> {
                 // SAFETY: on_heap is true, so we're on the heap
                 unsafe {
                     let (ptr, capacity) = self.raw.heap;
-                    self.raw = RawSmallVec::new_inline(MaybeUninit::uninit());
+                    self.raw = RawSmallVec::new_inline([const {MaybeUninit::uninit()}; N]);
                     copy_nonoverlapping(ptr.as_ptr(), self.raw.as_mut_ptr_inline(), len);
                     self.set_inline();
                     alloc::alloc::dealloc(
