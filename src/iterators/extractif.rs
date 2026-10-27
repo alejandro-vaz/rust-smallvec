@@ -1,3 +1,9 @@
+#[cfg(feature = "defmt")]
+use defmt::{
+    Format,
+    Formatter as DeFormatter,
+    write as dewrite
+};
 use {
     super::super::{
         SmallVec,
@@ -10,7 +16,7 @@ use {
         fmt::{
             Debug,
             Formatter,
-            Result as Format
+            Result as Formatted
         },
         ptr::copy_nonoverlapping
     }
@@ -44,10 +50,16 @@ where
     F: FnMut(&mut Item) -> bool,
     Item: Debug
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Format {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Formatted {
         f.debug_tuple("ExtractIf")
             .field(&self.vec.as_ref())
             .finish()
+    }
+}
+
+impl<Item: Format, const INLINE: usize, Heap: Allocator, F: FnMut(&mut Item) -> bool> Format for ExtractIf<'_, Item, INLINE, F, Heap> {
+    fn format(&self, fmt: DeFormatter) {
+        dewrite!(fmt, "{=[?]}", self.vec.as_ref());
     }
 }
 

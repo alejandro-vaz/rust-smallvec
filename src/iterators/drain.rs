@@ -1,3 +1,9 @@
+#[cfg(feature = "defmt")]
+use defmt::{
+    Format,
+    Formatter as DeFormatter,
+    write as dewrite
+};
 use {
     super::super::{
         SmallVec,
@@ -11,7 +17,7 @@ use {
         fmt::{
             Debug,
             Formatter,
-            Result as Format
+            Result as Formatted
         },
         iter::FusedIterator,
         mem::take,
@@ -242,7 +248,13 @@ impl<Item, const INLINE: usize, Heap: Allocator> Drain<'_, Item, INLINE, Heap> {
 }
 
 impl<Item: Debug, const INLINE: usize, Heap: Allocator> Debug for Drain<'_, Item, INLINE, Heap> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Format {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Formatted {
         f.debug_tuple("Drain").field(&self.iter.as_slice()).finish()
+    }
+}
+
+impl<Item: Format, const INLINE: usize, Heap: Allocator> Format for Drain<'_, Item, INLINE, Heap> {
+    fn format(&self, fmt: DeFormatter) {
+        dewrite!(fmt, "{=[?]}", self.as_ref());
     }
 }

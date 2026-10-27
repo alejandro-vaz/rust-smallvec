@@ -13,7 +13,7 @@ use {
     core::fmt::{
         Debug,
         Formatter,
-        Result as Format
+        Result as Formatted
     }
 };
 
@@ -38,7 +38,7 @@ where
     I: Debug + Iterator + 'valid,
     <I as Iterator>::Item: Debug
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Format {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Formatted {
         f.debug_tuple("Splice").field(&self.drain).finish()
     }
 }
