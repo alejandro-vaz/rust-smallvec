@@ -239,6 +239,6 @@ impl<Item: Debug, const INLINE: usize, Heap: Allocator> Debug for IntoIter<Item,
 
 impl<Item: Format, const INLINE: usize, Heap: Allocator> Format for IntoIter<Item, INLINE, Heap> {
     fn format(&self, fmt: DeFormatter) {
-        dewrite!(fmt, "{=[?]}", self.as_ref());
+        dewrite!(fmt, "IntoIter({=[?]})", self.as_ref());
     }
 }
